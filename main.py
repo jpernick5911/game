@@ -14,7 +14,7 @@ yResolution = 250
 playerX = math.floor(worldWidth/2)
 playerY = math.floor(worldHeight/2)
 
-brightnessOptions = ["\x1b[38;2;249;221;111m", "\x1b[38;2;230;236;150m", "\x1b[38;2;210;223;200m", "\x1b[38;2;169;213;200m", "\x1b[38;2;137;196;200m", "\x1b[38;2;110;193;200m", "\x1b[38;2;74;165;200m", "\x1b[38;2;48;152;200m", "\x1b[38;2;23;139;200m", "\x1b[38;2;0;88;188m"]
+brightnessOptions = ["\x1b[38;2;249;221;111m", "\x1b[38;2;230;236;150m", "\x1b[38;2;210;223;200m", "\x1b[38;2;169;213;200m", "\x1b[38;2;137;196;200m", "\x1b[38;2;110;193;200m", "\x1b[38;2;74;165;200m", "\x1b[38;2;48;152;200m", "\x1b[38;2;23;139;200m", "\x1b[38;2;0;88;188m", "\x1b[38;2;249;221;111m"]
 resetColor = "\x1b[0m"
 
 def createGrid():
@@ -147,22 +147,45 @@ def drawWalls(y, x, brightness):
   else:
     print(brightnessOptions[brightness - 1] + "█", end = "")
 
-def detectDistance(sourceY, sourceX, spotY, spotX, lightRadius):
+def detectDistanceForLighting(sourceY, sourceX, spotY, spotX, lightRadius):
   positionDifferenceY = sourceY - spotY
   positionDifferenceX = sourceX - spotX
-  distance = math.sqrt(positionDifferenceY**2 + positionDifferenceX**2)
+  distance = math.sqrt((2*positionDifferenceY)**2 + positionDifferenceX**2)
   if distance < lightRadius:
     brightness = math.floor(distance/(lightRadius/10))
   else:
     brightness = 10
+  brightness = rayTrace(sourceY, sourceX, spotY, spotX, brightness)
   return brightness
+
+def rayTrace(sourceY, sourceX, spotY, spotX, previousBrightness):
+  slopeNum = sourceY - spotY
+  slopeDen = sourceX - spotX
+  slopeNum = slopeNum / slopeDen
+  slopeDen = slopeDen / abs(slopeDen)
+
+  Check1 = False
+  Check2 = False
+
+  for x in range(spotX, sourceX):
+    if gridList[spotY + (x * slopeNum)][x] == 1:
+      Check1 = True
+    elif gridList[spotY + (x * slopeNum)][x] == 0 and Check1 == True:
+      Check2 = True
+  
+  if Check2 == True:
+    previousBrightness = 10
+  else:
+    previousBrightness = previousBrightness
+
+  return previousBrightness
 
 def drawScreen():
   for y in range(2, (worldHeight - 2)):
     if (playerY + yResolution) > y > (playerY - yResolution):
       for x in range(2, (worldWidth - 2)):
         if (playerX + xResolution) > x > (playerX - xResolution):
-          brightness = detectDistance(playerY, playerX, y, x, 100)
+          brightness = detectDistanceForLighting(playerY, playerX, y, x, 100)
           if gridList[y][x] == 1:
             print(brightnessOptions[brightness - 1] + " ", end = "")
           elif gridList[y][x] == 0:
