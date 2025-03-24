@@ -7,14 +7,15 @@ worldWidth = 500
 #the larger open space is the more ceiling there is 
 openSpace = math.floor((worldHeight/2)-3)
 
-xResolution = 75
+xResolution = 50
 yResolution = 250
 
 #(0,0) is at the top left corner of the screen
 playerX = math.floor(worldWidth/2)
 playerY = math.floor(worldHeight/2)
 
-rayList = []
+brightnessOptions = ["\x1b[38;2;249;221;111m", "\x1b[38;2;230;236;150m", "\x1b[38;2;210;223;200m", "\x1b[38;2;169;213;200m", "\x1b[38;2;137;196;200m", "\x1b[38;2;110;193;200m", "\x1b[38;2;74;165;200m", "\x1b[38;2;48;152;200m", "\x1b[38;2;23;139;200m", "\x1b[38;2;0;88;188m"]
+resetColor = "\x1b[0m"
 
 def createGrid():
   for y in range(0, worldHeight):
@@ -120,7 +121,7 @@ def addWater(waterAmount):
           gridList[randomY][randomX - x] = 7
   createWaterFall()
 
-def drawWalls(y, x):
+def drawWalls(y, x, brightness):
   # there will be list index issues at the edge of the screen dou to adding and subtracting from y and x, could fix by changing range in draw screen function
   airRight = False
   airLeft = False
@@ -138,68 +139,51 @@ def drawWalls(y, x):
     airUp = True
 
   if airDown == True:
-    print("-", end = "")
+    print(brightnessOptions[brightness - 1] + "-", end = "")
   elif airRight == True or airLeft == True:
-    print("|", end = "")
+    print(brightnessOptions[brightness - 1] + "|", end = "")
   elif airUp == True:
-    print("-", end = "")
+    print(brightnessOptions[brightness - 1] + "-", end = "")
   else:
-    print("█", end = "")
-  
-def rayTrace(sourceY, sourceX, lightRadius, rayTraceResolution):
-  global rayList
-  
-  
-  if ((playerY + yResolution) > sourceY > (playerY - yResolution)) and (((playerX + xResolution) > sourceX > (playerX - xResolution))):
-    rayList = []
-    for y in range(0, worldHeight):
-      rayList.append([])
-      for x in range(0, worldWidth):
-        rayList[y].append(0)
-  
-    raySlopeNum = 1
-    raySlopeDen = rayTraceResolution
-    for x in range(0, (rayTraceResolution - 1)):
-      raySlopeNum = raySlopeNum + 1
-      changePositionY = 0
-      changePositionX = 0
-      while gridList[sourceY - changePositionY][sourceX + changePositionX] == 1:
-        changePositionY = changePositionY + raySlopeNum
-        changePositionX = changePositionX + raySlopeDen
-      distance = math.sqrt(changePositionY**2 + changePositionX**2)
-      if distance < lightRadius:
-        #sets distance to a value from 1 to 10 if within the light radius
-        brightness = math.floor(distance/(lightRadius/10))
-        #puts brightness at position ray collides with wall in brightness list
-        rayList[sourceY + changePositionY][sourceX + changePositionX] = brightness
-    
-  
+    print(brightnessOptions[brightness - 1] + "█", end = "")
+
+def detectDistance(sourceY, sourceX, spotY, spotX, lightRadius):
+  positionDifferenceY = sourceY - spotY
+  positionDifferenceX = sourceX - spotX
+  distance = math.sqrt(positionDifferenceY**2 + positionDifferenceX**2)
+  if distance < lightRadius:
+    brightness = math.floor(distance/(lightRadius/10))
+  else:
+    brightness = 10
+  return brightness
+
 def drawScreen():
   for y in range(2, (worldHeight - 2)):
     if (playerY + yResolution) > y > (playerY - yResolution):
       for x in range(2, (worldWidth - 2)):
         if (playerX + xResolution) > x > (playerX - xResolution):
+          brightness = detectDistance(playerY, playerX, y, x, 100)
           if gridList[y][x] == 1:
-            print(" ", end = "")
+            print(brightnessOptions[brightness - 1] + " ", end = "")
           elif gridList[y][x] == 0:
-            drawWalls(y, x)
+            drawWalls(y, x, brightness)
           elif gridList[y][x] == 2:
-            print("/", end = "")
+            print(brightnessOptions[brightness - 1] + "/", end = "")
           elif gridList[y][x] == 3:
-            print("|", end = "")
+            print(brightnessOptions[brightness - 1] + "|", end = "")
           elif gridList[y][x] == 4:
-            print("\\", end = "")
+            print(brightnessOptions[brightness - 1] + "\\", end = "")
           elif gridList[y][x] == 5:
-            print("^", end = "")
+            print(brightnessOptions[brightness - 1] + "^", end = "")
           elif gridList[y][x] == 6:
-            print("@", end = "")
+            print(brightnessOptions[brightness - 1] + "@", end = "")
           elif gridList[y][x] == 7 or gridList[y][x] == 8:
-            print("~", end = "")
+            print(brightnessOptions[brightness - 1] + "~", end = "")
           elif gridList[y][x] == 9:
-            print("𓍊", end = "")
+            print(brightnessOptions[brightness - 1] + "𓍊", end = "")
           elif gridList[y][x] == 10:
-            print("𓋼", end = "")
-      print("")
+            print(brightnessOptions[brightness - 1] + "𓋼", end = "")
+      print("" + resetColor)
 
 createGrid()
 addBackground()
@@ -209,10 +193,4 @@ addWater(25)
 addTrees(125)
 addRocks(100)
 addPlants(100)
-#drawScreen()
-
-rayTrace(playerY, playerX, 50, )
-print(rayList)
-
-#print("hi")
-#print("\033[38;5;242mhi \n")
+drawScreen()
