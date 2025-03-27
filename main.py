@@ -81,7 +81,7 @@ def addTrees(treeAmount):
     randomX = random.randint(5,(worldWidth-5))
     randomY = random.randint(5,(worldHeight-5))
     #checks that ground is below randomY and that the ground to the left and right of randomX are not filled
-    if gridList[randomY+1][randomX] == 0 and gridList[randomY][randomX] == 1 and gridList[randomY][randomX + 1] == 1:
+    if gridList[randomY+1][randomX] == 0 and gridList[randomY][randomX + 1] == 1:
       treeNumber = treeNumber + 1
       #sets the two spots next to bottom trunk to air(1)
       gridList[randomY][randomX] = 1
@@ -219,7 +219,7 @@ def rayTrace(sourceY, sourceX, spotY, spotX, previousBrightness):
     #looks at every point between sourceX and spotX
     for x in range(sourceX, spotX):
       #this is the y value at a given x between the two points
-      yChange = spotY + round(abs(spotX - x) * slopeNum)
+      yChange = sourceY + round(abs(sourceX - x) * slopeNum * -1)
       #stops overshooting the target near the end(due to rounding errors)
       if abs(yChange) > spotY:
         yChange = spotY
@@ -235,9 +235,6 @@ def rayTrace(sourceY, sourceX, spotY, spotX, previousBrightness):
     for x in range(spotX, sourceX):
       #this is the y value at a given x between the two points
       yChange = spotY + round(abs(spotX - x) * slopeNum)
-      #stops overshooting the target near the end(due to rounding errors)
-      if abs(yChange) > sourceY:
-        yChange = sourceY
       # if, moving from the spot(which is left of the source) towards that source one x at a time, a spot will be blocked if...
       # first there is air between the spot and the source
       if gridList[yChange][x] == 1:
@@ -311,3 +308,4 @@ drawScreen()
 
 
 
+#**Problem with trees creating straight shadow going down in bottom left quadrant**
